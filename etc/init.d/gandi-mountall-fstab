@@ -11,12 +11,12 @@
 #
 ### BEGIN INIT INFO
 # Provides:             gandi-mountall-fstab
-# Required-Start:       $local_fs  boot. boot.udev  gandi-mount
+# Required-Start:       $local_fs $remote_fs boot. boot.udev  gandi-mount
 # Required-Stop:        
 # Default-Start:        S
 # Default-Stop:         0 1 6
 # X-Start-Before:       
-# X-Start-After:        $local_fs  boot. boot.udev  gandi-mount
+# X-Start-After:        $local_fs $remote_fs boot. boot.udev  gandi-mount
 # Short-Description:    Script to mount all /etc/fstab entries to the system.
 # Description:          Gandi-mountall-fstab uses the fstab file to mount 
 #                       points not recognized by udev (used by gandi-mount),
