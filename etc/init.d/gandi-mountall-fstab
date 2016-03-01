@@ -1,0 +1,100 @@
+#!/bin/sh
+#
+# gandi-mountall-fstab     Mount all /etc/fstab entries.
+#
+### rpm based distribution
+# chkconfig: - 12 88
+# description: initscript which mounts all of fstab for Gandi hosting.
+# processname: gandi-mountall-fstab
+# config: /etc/sysconfig/gandi
+# pidfile: /var/run/gandi-mountall-fstab.pid
+#
+### BEGIN INIT INFO
+# Provides:             gandi-mountall-fstab
+# Required-Start:       $local_fs  boot. boot.udev  gandi-mount
+# Required-Stop:        
+# Default-Start:        S
+# Default-Stop:         0 1 6
+# X-Start-Before:       
+# X-Start-After:        $local_fs  boot. boot.udev  gandi-mount
+# Short-Description:    Script to mount all /etc/fstab entries to the system.
+# Description:          Gandi-mountall-fstab uses the fstab file to mount 
+#                       points not recognized by udev (used by gandi-mount),
+#                       e.g. mount --bind.
+#                       The script is designed to delay the boot process until
+#                       the disks are fully available and mounted, to avoid
+#                       starting an application without its data.
+### END INIT INFO
+
+# Author: Loïc CORBASSON <loic.corbasson@gmail.com>
+
+# "-e" option is not welcome here.
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="mounting fstab entries"
+NAME=gandi-mountall-fstab
+CONFIG_ALLOW_MOUNT=1
+DEFAULTSFILE=/etc/default/gandi
+
+# Mount attached datadisk to the filesystem tree
+[ -r $DEFAULTSFILE ] && . $DEFAULTSFILE
+
+# Some distributions do not use LSB by default. We provide some simple 
+# functions to do the job and let the LSB functions override them if
+# present
+log_success_msg() {
+            echo -e "\t\t\t [$1]"
+}
+
+log_failure_msg() {
+            echo -e "\t\t\t [$1]"
+}
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+[ -f /lib/lsb/init-functions ] && . /lib/lsb/init-functions
+
+log_gandi_msg() {
+        [ $1 = 0 ] && log_success_msg "ok" || log_failure_msg "fail"
+}
+
+retval=1
+
+case "$1" in
+  start)
+    if [ "o$CONFIG_ALLOW_MOUNT" = "o0"  ]; then
+        echo -n "$NAME disabled in conf: "
+        retval=$?
+    else
+        echo -n "Starting $NAME: "
+        mount -a
+        retval=$?
+    fi
+    log_gandi_msg $retval
+    ;;
+  stop|status)
+    # nothing to do
+    ;;
+  restart|force-reload)
+    echo -n "Restarting $NAME: "
+    mount -a
+    retval=$?
+    log_gandi_msg $retval
+    ;;
+  *)
+    echo "Usage : $NAME {start|restart|force-reload}" >&2
+    exit 3
+    ;;
+
+esac
+
+exit 0
+
+#task
+#start on startup and stopped gandi-mount
+#
+#script
+#  mount -a
+#end script
+
